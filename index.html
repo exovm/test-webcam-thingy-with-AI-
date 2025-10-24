@@ -3,106 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <title>Exoskeleton Tracker</title>
-  <style>
-    body {
-      background: #111;
-      color: #fff;
-      font-family: sans-serif;
-      text-align: center;
-    }
-    video, canvas {
-      width: 640px;
-      height: 480px;
-      border: 2px solid #00ffcc;
-      border-radius: 8px;
-      margin-top: 10px;
-    }
-    .coords {
-      margin-top: 10px;
-      font-size: 14px;
-      text-align: left;
-      max-width: 640px;
-      margin-left: auto;
-      margin-right: auto;
-      color: #0f0;
-    }
-  </style>
-
-  <!-- MediaPipe JS libraries -->
+  <link rel="stylesheet" href="style.css">
+  <!-- MediaPipe JS -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js"></script>
 </head>
 <body>
   <h1>Exoskeleton Tracker</h1>
   <video id="video" autoplay playsinline></video>
-  <canvas id="output"></canvas>
-  <div class="coords" id="coords"></div>
+  <canvas id="canvas"></canvas>
 
-  <script>
-    const videoElement = document.getElementById('video');
-    const canvasElement = document.getElementById('output');
-    const canvasCtx = canvasElement.getContext('2d');
-    const coordsDiv = document.getElementById('coords');
-
-    // Setup MediaPipe Pose
-    const pose = new Pose.Pose({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
-    });
-
-    pose.setOptions({
-      modelComplexity: 1,
-      smoothLandmarks: true,
-      enableSegmentation: false,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
-    });
-
-    pose.onResults((results) => {
-      canvasCtx.save();
-      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-      canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-
-      coordsDiv.innerHTML = ""; // Clear previous coordinates
-
-      if (results.poseLandmarks) {
-        // Draw keypoints
-        canvasCtx.fillStyle = "red";
-        results.poseLandmarks.forEach((p, index) => {
-          const x = p.x * canvasElement.width;
-          const y = p.y * canvasElement.height;
-          canvasCtx.beginPath();
-          canvasCtx.arc(x, y, 5, 0, 2 * Math.PI);
-          canvasCtx.fill();
-          // Show coordinates
-          coordsDiv.innerHTML += `Joint ${index}: x=${x.toFixed(1)}, y=${y.toFixed(1)}<br>`;
-        });
-
-        // Draw skeleton
-        const connections = Pose.POSE_CONNECTIONS;
-        canvasCtx.strokeStyle = "#00ffcc";
-        canvasCtx.lineWidth = 2;
-        connections.forEach(([a, b]) => {
-          const p1 = results.poseLandmarks[a];
-          const p2 = results.poseLandmarks[b];
-          canvasCtx.beginPath();
-          canvasCtx.moveTo(p1.x * canvasElement.width, p1.y * canvasElement.height);
-          canvasCtx.lineTo(p2.x * canvasElement.width, p2.y * canvasElement.height);
-          canvasCtx.stroke();
-        });
-      }
-
-      canvasCtx.restore();
-    });
-
-    // Start webcam
-    const camera = new CameraUtils.Camera(videoElement, {
-      onFrame: async () => {
-        await pose.send({ image: videoElement });
-      },
-      width: 640,
-      height: 480
-    });
-    camera.start();
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
